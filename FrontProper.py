@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import *
 from tkinter import filedialog as fd
 import User as user
 import Back as bk
@@ -239,13 +240,25 @@ class UserAccount(tk.Frame):
         label = tk.Label(self,text = 'Welcome', font = LARGE_FONT)
         label.pack(pady=10,padx=10)
 
-        button1 = ttk.Button(self, text='Click to Open Image One', command=lambda: [self.callBackOne(), self.displayLabel()])
-        button1.pack()
-        button2 = ttk.Button(self, text='Click to Open Image Two', command=lambda: [self.callBackTwo(), self.displayLabel()])
-        button2.pack()
+        label2 = tk.Label(self,text = 'Select image one from:')
+        label2.place(x=70, y=40)
+        button1 = ttk.Button(self, text='File Explorer', command= self.callBackOne)
+        button1.place(x=50, y=65)
+        button1alt = ttk.Button(self, text='Image Library', command=self.callBackOne)
+        button1alt.place(x=130, y=65)
 
-        button3 = ttk.Button(self, text= 'Sign out', command = lambda: [controller.show_frame(StartPage), user.logOut()])
-        button3.pack()
+        label3 = tk.Label(self,text = 'Select image two from:')
+        label3.place(x=70, y=90)
+        button2 = ttk.Button(self, text='File Explorer', command= self.callBackTwo)
+        button2.place(x=50, y=115)
+        button2alt = ttk.Button(self, text='Image Library', command=self.callBackOne)
+        button2alt.place(x=130, y=115)
+
+        button3 = ttk.Button(self, text='Compare Images!', command= self.displayLabel)
+        button3.place(x=75, y=150)
+
+        button4 = ttk.Button(self, text= 'Sign out', command = lambda: [controller.show_frame(StartPage), user.logOut()])
+        button4.place(x=90, y=200)
 
     def callBackOne(self):
         '''
@@ -325,7 +338,7 @@ class UserAccount(tk.Frame):
 
         if imageOneSelected == True and imageTwoSelected == True:
             text1 = tk.Label(self, text=str(bk.comparator(imOnePosition, imTwoPosition, 4)))
-            text1.pack()
+            text1.place(x=110, y=175)
         else:
             return("Image one not selected")
 
