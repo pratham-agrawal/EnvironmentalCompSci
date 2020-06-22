@@ -229,7 +229,6 @@ def updateObjectDirectory():
 def signInPortal(username,passwordAttempt):
     return(globals()[username].logIn(passwordAttempt))
 
-appOpen()
 
 print("really?")
 
