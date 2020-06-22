@@ -10,6 +10,36 @@ imageTwoSelected = False
 user.appOpen()
 
 LARGE_FONT = ("Verdana",12)
+MED_FONT = ("Verdana",10)
+SMALL_FONT = ("Verdana",8)
+
+def popupAlert(msg):
+    '''
+        Pop up message
+
+        Pops up an alert when something goes wrong
+
+        Parameters
+        ----------
+        msg: Str
+            The message that needs to be popped up and displayed
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        None
+
+        '''
+    popup = tk.Tk()
+    popup.wm_title("!")
+    label = ttk.Label(popup, text=msg, font=MED_FONT)
+    label.pack(side="top", fill="x", pady=10)
+    B1 = ttk.Button(popup, text="Okay", command = popup.destroy)
+    B1.pack()
+    popup.mainloop()
 
 class Controller(tk.Tk): #tk.TK is inherited
     '''
@@ -136,12 +166,17 @@ class StartPage(tk.Frame):
             '''
 
         if username == '' or password == '':
-            return("Please fill out all fields")
+            popupAlert("Fill out all fields")
         else:
-            if user.signInPortal(username,password) == True:
+            userList = [line.rstrip('\n') for line in open('objectDirectory.txt')]
+            if username not in userList:
+                popupAlert("Invalid username")
+            elif user.signInPortal(username,password) == True:
+                global usersName
+                usersName = username
                 controller.show_frame(UserAccount)
             else:
-                return("Get yeeted")
+                popupAlert("Wrong Password")
 
 class SignUpPage(tk.Frame):
     '''
@@ -210,9 +245,13 @@ class SignUpPage(tk.Frame):
             None
 
             '''
-        if user.objectCreator(userName,password1,password2) == True:
+        result = user.objectCreator(userName,password1,password2)
+        if result == True:
+            global usersName
+            usersName = userName
             controller.show_frame(UserAccount)
-
+        else:
+            popupAlert(result)
 
 class UserAccount(tk.Frame):
     '''
@@ -244,14 +283,14 @@ class UserAccount(tk.Frame):
         label2.place(x=70, y=40)
         button1 = ttk.Button(self, text='File Explorer', command= self.callBackOne)
         button1.place(x=50, y=65)
-        button1alt = ttk.Button(self, text='Image Library', command=self.callBackOne)
+        button1alt = ttk.Button(self, text='Image Library', command=self.callBackOneAlt)
         button1alt.place(x=130, y=65)
 
         label3 = tk.Label(self,text = 'Select image two from:')
         label3.place(x=70, y=90)
         button2 = ttk.Button(self, text='File Explorer', command= self.callBackTwo)
         button2.place(x=50, y=115)
-        button2alt = ttk.Button(self, text='Image Library', command=self.callBackOne)
+        button2alt = ttk.Button(self, text='Image Library', command=self.callBackTwoAlt)
         button2alt.place(x=130, y=115)
 
         button3 = ttk.Button(self, text='Compare Images!', command= self.displayLabel)
@@ -259,6 +298,61 @@ class UserAccount(tk.Frame):
 
         button4 = ttk.Button(self, text= 'Sign out', command = lambda: [controller.show_frame(StartPage), user.logOut()])
         button4.place(x=90, y=200)
+
+    def popupmsg(self):
+        '''
+            Creates a popup message
+
+            Pops up directory choices and allows them to interact with program
+
+            Parameters
+            ----------
+            None
+
+            Returns
+            -------
+            None
+
+            Raises
+            ------
+            None
+
+            '''
+
+        popup = tk.Tk()
+
+        def autoClose():
+            '''
+                Closes popup
+
+                Destroys the popup automatically after something has been selected
+
+                Parameters
+                ----------
+                None
+
+                Returns
+                -------
+                None
+
+                Raises
+                ------
+                None
+                '''
+            popup.destroy()
+
+        popup.wm_title("!")
+        label = ttk.Label(popup, text="Would you like to save image to directory", font=MED_FONT)
+        label.pack(side="top", fill='x', pady=8, padx = 5)
+        label1 = tk.Label(popup, text='Save under:')
+        label1.pack(padx=10)
+        saveName = tk.Entry(popup, width=40)
+        saveName.pack(padx=10)
+        B1 = ttk.Button(popup, text="Save", command=lambda: [self.save1ToDirectory(True, saveName.get()), autoClose()])
+        B1.pack(pady=3)
+        B2 = ttk.Button(popup, text="Don't Save", command=lambda: [self.save1ToDirectory(False, saveName.get()), autoClose()])
+        B2.pack(pady=3)
+        popup.mainloop()
 
     def callBackOne(self):
         '''
@@ -282,11 +376,216 @@ class UserAccount(tk.Frame):
 
         imageOne = str(fd.askopenfile())
         imList1 = imageOne.split("'")
-        global imOnePosition
-        imOnePosition = imList1[1]
-        print(imOnePosition)
+        global file1
+        file1 = imList1[1]
+        print(file1)
         global imageOneSelected
         imageOneSelected = True
+        global directory1
+        directory1 = False
+        self.popupmsg()
+
+    def save1ToDirectory(self,save,saveName):
+        '''
+            Prepares variables to be saved to library
+
+            Is called to save an image to library
+
+            Parameters
+            ----------
+            save: bool
+                Whether or not they want to save the image to library or not
+            saveName: str
+                The name to be saved under
+
+            Returns
+            -------
+            None
+
+            Raises
+            ------
+            None
+
+            '''
+
+        global save1
+        save1 = save
+        global saveName1
+        if save == True:
+            fileImageNames = usersName + "_image_names.txt"
+            lineList = [line.rstrip('\n') for line in open(fileImageNames)]
+            if saveName not in lineList:
+                saveName1=saveName
+            else:
+                saveName1 = False
+                popupAlert("That image name already exists")
+        if save == False:
+            saveName1 = False
+
+    def callBackOneAlt(self):
+        '''
+            Prepares variables and image from library
+
+            Prepares variable and triggers a pop up to collect image library information
+
+            Parameters
+            ----------
+            None
+
+            Returns
+            -------
+            None
+
+            Raises
+            ------
+            None
+
+            '''
+
+        global file1
+        file1 = False
+        global imageOneSelected
+        imageOneSelected = True
+        global directory1
+        directory1 = True
+        global save1
+        save1 = False
+        self.popupmsgalt()
+
+    def popupmsgalt(self):
+        '''
+            Creates a popup message
+
+            Pops up directory choices and allows them to interact with program
+
+            Parameters
+            ----------
+            None
+
+            Returns
+            -------
+            None
+
+            Raises
+            ------
+            None
+
+            '''
+        popup = tk.Tk()
+
+        def autoClose():
+            '''
+                Closes popup
+
+                Destroys the popup automatically after something has been selected
+
+                Parameters
+                ----------
+                None
+
+                Returns
+                -------
+                None
+
+                Raises
+                ------
+                None
+                '''
+            popup.destroy()
+
+        popup.wm_title("!")
+        label = ttk.Label(popup, text="Enter the name you saved the image under", font=MED_FONT)
+        label.pack(side="top", fill='x', pady=8, padx = 5)
+        saveName = tk.Entry(popup, width=40)
+        saveName.pack(padx=10)
+        B1 = ttk.Button(popup, text="Enter", command=lambda: [self.directory1name(saveName.get()), autoClose()])
+        B1.pack(pady=3)
+        B2 = ttk.Button(popup, text="Cancel", command=autoClose)
+        B2.pack(pady=3)
+        popup.mainloop()
+
+    def directory1name(self,name):
+        '''
+            Prepares variables
+
+            Is called to create variables to use an image from the image library
+
+            Parameters
+            ----------
+            name: str
+                The name of the image that they saved to the library
+
+            Returns
+            -------
+            None
+
+            Raises
+            ------
+            None
+
+            '''
+        fileImageNames = usersName + "_image_names.txt"
+        lineList = [line.rstrip('\n') for line in open(fileImageNames)]
+        if name in lineList:
+            global saveName1
+            saveName1 = name
+        else:
+            saveName1=False
+            popupAlert("That image doesn't exists")
+
+    def popupmsg2(self):
+        '''
+            Creates a popup message
+
+            Pops up directory choices and allows them to interact with program
+
+            Parameters
+            ----------
+            None
+
+            Returns
+            -------
+            None
+
+            Raises
+            ------
+            None
+
+            '''
+        popup2 = tk.Tk()
+
+        def autoClose():
+            '''
+                Closes popup
+
+                Destroys the popup automatically after something has been selected
+
+                Parameters
+                ----------
+                None
+
+                Returns
+                -------
+                None
+
+                Raises
+                ------
+                None
+                '''
+            popup2.destroy()
+
+        popup2.wm_title("!")
+        label = ttk.Label(popup2, text="Would you like to save image to directory", font=MED_FONT)
+        label.pack(side="top", fill='x', pady=8, padx = 5)
+        label1 = tk.Label(popup2, text='Save under:')
+        label1.pack(padx=10)
+        saveName = tk.Entry(popup2, width=40)
+        saveName.pack(padx=10)
+        B1 = ttk.Button(popup2, text="Save", command=lambda: [self.save2ToDirectory(True, saveName.get()), autoClose()])
+        B1.pack(pady=3)
+        B2 = ttk.Button(popup2, text="Don't Save", command=lambda: [self.save2ToDirectory(False, saveName.get()), autoClose()])
+        B2.pack(pady=3)
+        popup2.mainloop()
 
     def callBackTwo(self):
         '''
@@ -310,11 +609,160 @@ class UserAccount(tk.Frame):
 
         imageTwo = str(fd.askopenfile())
         imList2 = imageTwo.split("'")
-        global imTwoPosition
-        imTwoPosition = imList2[1]
-        print(imTwoPosition)
+        global file2
+        file2 = imList2[1]
+        print(file2)
         global imageTwoSelected
         imageTwoSelected = True
+        global directory2
+        directory2 = False
+        self.popupmsg2()
+
+    def save2ToDirectory(self,save,saveName):
+        '''
+            Prepares variables to be saved to library
+
+            Is called to save an image to library
+
+            Parameters
+            ----------
+            save: bool
+                Whether or not they want to save the image to library or not
+            saveName: str
+                The name to be saved under
+
+            Returns
+            -------
+            None
+
+            Raises
+            ------
+            None
+
+            '''
+        global save2
+        save2 = save
+        global saveName2
+        if save == True:
+            fileImageNames = usersName + "_image_names.txt"
+            lineList = [line.rstrip('\n') for line in open(fileImageNames)]
+            if saveName not in lineList:
+                saveName2 = saveName
+            else:
+                saveName2 = False
+                popupAlert("That image name already exists")
+        if save == False:
+            saveName2 = False
+
+    def callBackTwoAlt(self):
+        '''
+            Prepares variables and image from library
+
+            Prepares variable and triggers a pop up to collect image library information
+
+            Parameters
+            ----------
+            None
+
+            Returns
+            -------
+            None
+
+            Raises
+            ------
+            None
+
+            '''
+        global file2
+        file2 = False
+        global imageTwoSelected
+        imageTwoSelected = True
+        global directory2
+        directory2 = True
+        global save2
+        save2 = False
+        self.popupmsgalt2()
+
+    def popupmsgalt2(self):
+        '''
+            Creates a popup message
+
+            Pops up directory choices and allows them to interact with program
+
+            Parameters
+            ----------
+            None
+
+            Returns
+            -------
+            None
+
+            Raises
+            ------
+            None
+
+            '''
+        popup = tk.Tk()
+
+        def autoClose():
+            '''
+                Closes popup
+
+                Destroys the popup automatically after something has been selected
+
+                Parameters
+                ----------
+                None
+
+                Returns
+                -------
+                None
+
+                Raises
+                ------
+                None
+                '''
+            popup.destroy()
+
+        popup.wm_title("!")
+        label = ttk.Label(popup, text="Enter the name you saved the image under", font=MED_FONT)
+        label.pack(side="top", fill='x', pady=8, padx=5)
+        saveName = tk.Entry(popup, width=40)
+        saveName.pack(padx=10)
+        B1 = ttk.Button(popup, text="Enter", command=lambda: [self.directory2name(saveName.get()), autoClose()])
+        B1.pack(pady=3)
+        B2 = ttk.Button(popup, text="Cancel", command=autoClose)
+        B2.pack(pady=3)
+        popup.mainloop()
+
+    def directory2name(self, name):
+        '''
+            Prepares variables
+
+            Is called to create variables to use an image from the image library
+
+            Parameters
+            ----------
+            name: str
+                The name of the image that they saved to the library
+
+            Returns
+            -------
+            None
+
+            Raises
+            ------
+            None
+
+            '''
+        fileImageNames = usersName + "_image_names.txt"
+        lineList = [line.rstrip('\n') for line in open(fileImageNames)]
+        if name in lineList:
+            global saveName2
+            saveName2 = name
+        else:
+            saveName2= False
+            popupAlert("That image doesn't exists")
 
     def displayLabel(self):
         '''
@@ -337,10 +785,11 @@ class UserAccount(tk.Frame):
             '''
 
         if imageOneSelected == True and imageTwoSelected == True:
-            text1 = tk.Label(self, text=str(bk.comparator(imOnePosition, imTwoPosition, 4)))
-            text1.place(x=110, y=175)
+            fileName = usersName + "_image_directory.txt"
+            text1 = tk.Label(self, text=str(bk.comparator(usersName,file1, file2, 4, directory1, directory2, save1, saveName1, save2, saveName2, fileName)))
+            text1.place(x=1, y=175)
         else:
-            return("Image one not selected")
+            popupAlert("Select both images")
 
 
 app = Controller()
