@@ -1,5 +1,4 @@
 # EnvironmentalCS
-This program was created on Feb.20/2020 and after 6 months of work, it was completed on Jun.22/2020
 
 The program is a comparison algorithm for people working towards environmental benefits and are monitoring the plant life growth in a
 certain area. They can upload and save images of landscapes to our directory and compare them overtime with new images of the area. This 
