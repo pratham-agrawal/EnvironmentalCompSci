@@ -5,3 +5,4 @@ certain area. They can upload and save images of landscapes to our directory and
 will provide them with a thorough analysis of how much plant life change there is in the location of interest.
 
 ![](/Tree1.png)
+![](/Tree2.png)
