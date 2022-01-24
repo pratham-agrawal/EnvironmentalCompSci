@@ -1,4 +1,4 @@
-# EnvironmentalCS
+# Plant Life Monitor
 
 The program is a comparison algorithm for people working towards environmental benefits and are monitoring the plant life growth in a
 certain area. They can upload and save images of landscapes to our directory and compare them overtime with new images of the area. This 
